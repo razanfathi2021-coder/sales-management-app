@@ -50,8 +50,41 @@ class DBHelper {
 
   // Orders
   static Future<int> addOrder(int customerId, int productId, int qty, double price) async {
-    final d = await db;
-    final id = await d.insert('orders', {
+  final d = await db;
+
+  if (qty <= 0) return -1;
+
+  return await d.transaction((txn) async {
+    final products = await txn.query(
+      'products',
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+
+    if (products.isEmpty) return -1;
+
+    final stock = products.first['stock'] as int;
+
+    if (stock < qty) return -1;
+
+    final id = await txn.insert('orders', {
+      'customer_id': customerId,
+      'product_id': productId,
+      'quantity': qty,
+      'total': qty * price,
+      'date': DateTime.now().toIso8601String(),
+    });
+
+    await txn.update(
+      'products',
+      {'stock': stock - qty},
+      where: 'id = ?',
+      whereArgs: [productId],
+    );
+
+    return id;
+  });
+}
       'customer_id': customerId,
       'product_id': productId,
       'quantity': qty,
