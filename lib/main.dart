@@ -149,7 +149,32 @@ class _OrdersPageState extends State<OrdersPage> {
     );
     if (ok == true) {
       final p = products.firstWhere((e) => e['id'] == productId);
-      await DBHelper.addOrder(customerId!, productId!, int.tryParse(qtyCtrl.text) ?? 1, p['price']);
+     final qty = int.tryParse(qtyCtrl.text);
+
+if (qty == null || qty <= 0) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Please enter a valid quantity')),
+  );
+  return;
+}
+
+final result = await DBHelper.addOrder(
+  customerId!,
+  productId!,
+  qty,
+  (p['price'] as num).toDouble(),
+);
+
+if (result == -1) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Not enough stock available')),
+  );
+  return;
+}
+
+ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(content: Text('Order added successfully')),
+);
       _load();
     }
   }
