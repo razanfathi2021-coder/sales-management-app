@@ -85,15 +85,8 @@ class DBHelper {
     return id;
   });
 }
-      'customer_id': customerId,
-      'product_id': productId,
-      'quantity': qty,
-      'total': (qty * price),
-      'date': DateTime.now().toIso8601String(),
-    });
-    await d.rawUpdate('UPDATE products SET stock = stock - ? WHERE id = ?', [qty, productId]);
-    return id;
-  }
+   
+ 
 
   static Future<List<Map<String, dynamic>>> getOrders() async => (await db).rawQuery('''
       SELECT o.id, c.name AS customer, p.name AS product, o.quantity, o.total, o.date
